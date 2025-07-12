@@ -1,0 +1,155 @@
+const { Client, GatewayIntentBits, SlashCommandBuilder, Routes, REST } = require('discord.js');
+
+const client = new Client({
+  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers]
+});
+
+// Config
+const TOKEN = 'YOUR_BOT_TOKEN_HERE'; // replace with your bot token
+const CLIENT_ID = 'YOUR_BOT_CLIENT_ID'; // replace with your bot's client ID
+const GUILD_ID = '1393417680379445299'; // Server where command is used
+const LOG_CHANNEL_ID = '1393412010347204632'; // Channel to send message
+const LOG_SERVER_ID = '1393412009437171924'; // Server where the log channel is
+
+// Register slash command
+const commands = [
+  new SlashCommandBuilder()
+    .setName('ban')
+    .setDescription('Ban a member from the server')
+    .addUserOption(option =>
+      option.setName('member')
+        .setDescription('The member to ban')
+        .setRequired(true))
+    .addStringOption(option =>
+      option.setName('reason')
+        .setDescription('Reason for the ban')
+        .setRequired(true))
+].map(command => command.toJSON());
+
+const rest = new REST({ version: '10' }).setToken(TOKEN);
+
+// Register the command
+(async () => {
+  try {
+    await rest.put(Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID), { body: commands });
+    console.log('Slash command registered.');
+  } catch (err) {
+    console.error('Error registering slash command:', err);
+  }
+})();
+
+client.on('ready', () => {
+  console.log(`Bot is online as ${client.user.tag}`);
+});
+
+client.on('interactionCreate', async interaction => {
+  if (!interaction.isChatInputCommand()) return;
+
+  if (interaction.commandName === 'ban') {
+    const member = interaction.options.getUser('member');
+    const reason = interaction.options.getString('reason');
+
+    const guildMember = await interaction.guild.members.fetch(member.id).catch(() => null);
+
+    if (!guildMember) {
+      return interaction.reply({ content: 'Could not find that member in this server.', ephemeral: true });
+    }
+
+    // Ban the member
+    try {
+      await guildMember.ban({ reason });
+      await interaction.reply({ content: `Banned ${member.tag} for: ${reason}`, ephemeral: false });
+
+      // Determine appealable (basic logic: anything not "permanent" is appealable)
+      const appealable = reason.toLowerCase().includes('permanent') ? 'No' : 'Yes';
+
+      const logGuild = await client.guilds.fetch(LOG_SERVER_ID);
+      const logChannel = await logGuild.channels.fetch(LOG_CHANNEL_ID);
+      const logMessage = `Member ${member.id} has been banned!, With the reason of ${reason}.\nAppealable: ${appealable}`;
+
+      await logChannel.send(logMessage);
+    } catch (error) {
+      console.error(error);
+      await interaction.reply({ content: 'Failed to ban the member. Do I have permission?', ephemeral: true });
+    }
+  }
+});
+
+client.login(TOKEN);const { Client, GatewayIntentBits, SlashCommandBuilder, Routes, REST } = require('discord.js');
+
+const client = new Client({
+  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers]
+});
+
+// Config
+const TOKEN = 'YOUR_BOT_TOKEN_HERE'; // replace with your bot token
+const CLIENT_ID = 'YOUR_BOT_CLIENT_ID'; // replace with your bot's client ID
+const GUILD_ID = '1393417680379445299'; // Server where command is used
+const LOG_CHANNEL_ID = '1393412010347204632'; // Channel to send message
+const LOG_SERVER_ID = '1393412009437171924'; // Server where the log channel is
+
+// Register slash command
+const commands = [
+  new SlashCommandBuilder()
+    .setName('ban')
+    .setDescription('Ban a member from the server')
+    .addUserOption(option =>
+      option.setName('member')
+        .setDescription('The member to ban')
+        .setRequired(true))
+    .addStringOption(option =>
+      option.setName('reason')
+        .setDescription('Reason for the ban')
+        .setRequired(true))
+].map(command => command.toJSON());
+
+const rest = new REST({ version: '10' }).setToken(TOKEN);
+
+// Register the command
+(async () => {
+  try {
+    await rest.put(Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID), { body: commands });
+    console.log('Slash command registered.');
+  } catch (err) {
+    console.error('Error registering slash command:', err);
+  }
+})();
+
+client.on('ready', () => {
+  console.log(`Bot is online as ${client.user.tag}`);
+});
+
+client.on('interactionCreate', async interaction => {
+  if (!interaction.isChatInputCommand()) return;
+
+  if (interaction.commandName === 'ban') {
+    const member = interaction.options.getUser('member');
+    const reason = interaction.options.getString('reason');
+
+    const guildMember = await interaction.guild.members.fetch(member.id).catch(() => null);
+
+    if (!guildMember) {
+      return interaction.reply({ content: 'Could not find that member in this server.', ephemeral: true });
+    }
+
+    // Ban the member
+    try {
+      await guildMember.ban({ reason });
+      await interaction.reply({ content: `Banned ${member.tag} for: ${reason}`, ephemeral: false });
+
+      // Determine appealable (basic logic: anything not "permanent" is appealable)
+      const appealable = reason.toLowerCase().includes('permanent') ? 'No' : 'Yes';
+
+      const logGuild = await client.guilds.fetch(LOG_SERVER_ID);
+      const logChannel = await logGuild.channels.fetch(LOG_CHANNEL_ID);
+      const logMessage = `Member ${member.id} has been banned!, With the reason of ${reason}.\nAppealable: ${appealable}`;
+
+      await logChannel.send(logMessage);
+    } catch (error) {
+      console.error(error);
+      await interaction.reply({ content: 'Failed to ban the member. Do I have permission?', ephemeral: true });
+    }
+  }
+});
+
+client.login(TOKEN);
